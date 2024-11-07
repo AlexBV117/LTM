@@ -35,6 +35,6 @@ ax.set_title("Tempterature Oscillations { P=0.6, I=3.42 }")
 ax.set_xlabel("Time (s)")
 ax.set_ylabel("Temperature (K)")
 ax.legend(loc="lower right")
-fig.savefig("Good_Control_Graph_I.png")
+fig.savefig("Good_Control_Graph_I.png", dpi=300)
 plt.show()
 

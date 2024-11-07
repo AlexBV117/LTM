@@ -42,7 +42,7 @@ ax.set_xlabel("Time (s)")
 ax.set_ylabel("Temperature (K)")
 ax.legend(loc="lower right")
 
-fig.savefig("Good_Control_Graph_P.png")
+fig.savefig("Good_Control_Graph_P.png", dpi=300)
 
 plt.show()
 

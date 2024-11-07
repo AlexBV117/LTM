@@ -30,12 +30,12 @@ ax.plot(time_data_trunc, temp_data_trunc, color='r', label="Region of Interest")
 ax.set_title("Tempterature Oscillations with P=2")
 ax.set_xlabel("Time (s)")
 ax.set_ylabel("Temperature (K)")
-for peak in peaks_pos:
-    col = (np.random.random(), np.random.random(), np.random.random())
-    ax.vlines(peak, ymin=9.96, ymax=10.01, linestyle="dashed", color=col, label=f"TIME: {peak:2.2f}s")
+col = ["purple", "violet", "orchid", "magenta"]
+for i,peak in enumerate(peaks_pos):
+    ax.vlines(peak, ymin=9.96, ymax=10.01, linestyle="dashed", color=col[i], label=f"TIME: {peak:2.2f}s")
 ax.legend(loc="upper right")
 
-fig.savefig("1.0_Oscillations_Graph.png")
+fig.savefig("1.0_Oscillations_Graph.png", dpi=300)
 
 plt.show()
 

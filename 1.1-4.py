@@ -37,12 +37,12 @@ ax.plot(time_data_05_P-5.258, temp_data_05_P, color="lime", label=f"0.5P - σ: {
 ax.plot(time_data_10_P-5.519, temp_data_10_P, color='green', label=f"1.0P - σ: {sigma(temp_data_10_P_trunc):0.2f} - stabilisation time: 35s")
 ax.plot(time_data_15_P-2.759, temp_data_15_P, color='blue', label=f"1.5P - σ: {sigma(temp_data_15_P_trunc):0.2f} - stabilisation time: 30s")
 ax.plot(time_data_20_P-2.759, temp_data_20_P, color='cyan', label=f"2.0P - σ: {sigma(temp_data_20_P_trunc):0.2f} - stabilisation time: 27s")
-ax.set_title("Tempterature Oscillations { P=1.2 }")
+ax.set_title("Tempterature Oscillations { P=1.2, I=3.42 }")
 ax.set_xlabel("Time (s)")
 ax.set_ylabel("Temperature (K)")
-ax.legend(loc="upper right")
+ax.legend(loc="lower right")
 
-fig.savefig("1.1_Good_Control_Graph.png")
+fig.savefig("Good_Control_Graph_P.png")
 
 plt.show()
 

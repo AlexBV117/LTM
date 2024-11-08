@@ -27,7 +27,7 @@ print(f"The average period of oscillation is: {period_avg:1.2f}s")
 fig, ax = plt.subplots()
 ax.plot(time_data, temp_data, color='k', label="Full Data Run")
 ax.plot(time_data_trunc, temp_data_trunc, color='r', label="Region of Interest")
-ax.set_title("Tempterature Oscillations with P=2")
+ax.set_title("Tempterature Oscillations { P=2, I=0, D=0 }")
 ax.set_xlabel("Time (s)")
 ax.set_ylabel("Temperature (K)")
 col = ["purple", "violet", "orchid", "magenta"]

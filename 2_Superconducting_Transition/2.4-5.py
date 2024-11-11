@@ -23,7 +23,6 @@ def get_data(file, start, stop, current, init_vals):
     label = re.findall(r'(\d\.\dK_to_\d\.\dK)', file)
     return ((temp_data, resi_data, f"Data: {label[0]}"), (temp_fit, volt_fit, f"Fit: {label[0]}"), fit)
 
-
 data_24 = get_data("2.4_Ramp_8.4K_to_8.9K_5V.csv", 0, 244, 9.5e-4, [3.762, 36, -8.7])
 data_25 = get_data("2.5_Ramp_8.9K_to_8.4K_5V.csv", 0, 244, 9.5e-4, [3.76, 36, -8.65])
 

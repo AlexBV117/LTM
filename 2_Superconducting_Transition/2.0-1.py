@@ -23,6 +23,14 @@ def get_data(file, start, stop, current, init_vals):
     label = re.findall(r'(\d{1,2}K_to_\d{1,2}K)', file)
     return ((temp_data, resi_data, f"Data: {label[0]}"), (temp_fit, volt_fit, f"Fit: {label[0]}"), fit)
 
+def inv_sigmoid(y, a, b, c):
+    return ((-1/b) * np.log((a/y) - 1)) - c
+
+def get_T_vals(func, a, b, c):
+    t_50 = func(0.5 * a, a, b, c)
+    t_10 = func(0.1 * a, a, b, c)
+    t_90 = func(0.9 * a, a, b, c)
+    return (t_50, t_90 - t_10, a)
 
 data_20 = get_data("2.0_Ramp_7K_to_12K.csv", 60, 93, 9.5e-4, [3.762, 36, -8.7])
 data_21 = get_data("2.1_Ramp_12K_to_7K.csv", 133, 166, 9.5e-4, [3.76, 36, -8.65])
@@ -35,7 +43,9 @@ fig, ax = plt.subplots()
 for i, data in enumerate(data_runs):
     ax.plot(data[1][0], data[1][1], color=(0.5, 0.5, 0.5), linestyle=linestyles[i], label=data[1][2])
     ax.scatter(data[0][0], data[0][1], color=(0, 0, 0), marker=markers[i], label=data[0][2])
-#ax.hlines((3.762, 0), xmin=8.3, xmax=8.9, color='k', linestyle="dotted")
+    t = get_T_vals(inv_sigmoid, *data[2])
+    print(f"{data[0][2]}:\t{t[2]}\nT_50:\t\t\t{t[0]}\nT_90 - T_10:\t\t{t[1]}\n")
+ax.hlines()
 ax.set_title("Resistance vs Temperature { P=0.8, I=5.46, D=0 }")
 ax.set_xlabel("Temperature (K)")
 ax.set_ylabel("Resistance (Ω)")

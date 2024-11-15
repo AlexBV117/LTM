@@ -33,9 +33,9 @@ def get_data(file, section, current, init_vals, fit_func):
     # Generate points for the fitted curve
     temp_fit, resi_fit, fit, fit_cov = get_fit(fit_func, temp_data, resi_data, init_vals) 
     # Pull out the temperature range from the file name
-    label = re.findall(r'(\d{1,2}K_to_\d{1,2}K)', file)
+    label = re.findall(r'(\d{1,2}K_to_\d{1,2}K)', file)[0]
     print_fit_perams(label, fit, fit_cov)
-    return ((temp_data, resi_data, f"Data: {label[0]}"), (temp_fit, resi_fit, f"Fit: {label[0]}"), fit)
+    return ((temp_data, resi_data, f"Data: {label}"), (temp_fit, resi_fit, f"Fit: {label}"), fit)
 
 def get_fit(func, x, y, perams):
     # Fit a sigmoid function to the raw data

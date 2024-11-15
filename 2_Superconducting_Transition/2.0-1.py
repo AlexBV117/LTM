@@ -3,49 +3,87 @@ import matplotlib.pyplot as plt
 import re
 from pandas import read_csv
 from scipy.optimize import curve_fit
+from math import log10, floor
 
+def round_sig(x, sig=1):
+    return round(x, sig-int(floor(log10(abs(x))))-1)
 
 def sigmoid(x, a, b, c):
     return (a / (1 + np.exp(-b * (x + c))))
 
-def get_data(file, start, stop, current, init_vals):
-    file_data = read_csv(file)
-    volt_data = file_data.get("Amplitude (V)").to_numpy()[start:stop]
-    temp_data = file_data.get("Temperature (K)").to_numpy()[start:stop]
-    resi_data = volt_data/current
-    fit, _ = curve_fit(sigmoid, temp_data, resi_data, p0=init_vals)
-    temp_start, temp_stop = temp_data[0], temp_data[-1]
-    if temp_start < temp_stop:
-        temp_fit = np.arange(temp_start, temp_stop, 0.01)
-    else:
-        temp_fit = np.arange(temp_stop, temp_start, 0.01)
-    volt_fit = sigmoid(temp_fit, *fit)
-    label = re.findall(r'(\d{1,2}K_to_\d{1,2}K)', file)
-    return ((temp_data, resi_data, f"Data: {label[0]}"), (temp_fit, volt_fit, f"Fit: {label[0]}"), fit)
-
 def inv_sigmoid(y, a, b, c):
     return ((-1/b) * np.log((a/y) - 1)) - c
 
-def get_T_vals(func, a, b, c):
-    t_50 = func(0.5 * a, a, b, c)
-    t_10 = func(0.1 * a, a, b, c)
-    t_90 = func(0.9 * a, a, b, c)
-    return (t_50, t_90 - t_10, a)
+def print_fit_perams(label, ps, pcov):
+    print(f"{label}:")
+    pname = ["a", "b", "c"]
+    perr = np.sqrt(np.diag(pcov)) # one standard deviation errors
+    for p, err, name in zip(ps, perr, pname):
+        err = round_sig(err)
+        dec = len(str(err))-2
+        print(f"\t{name}: {p:1.{dec}f} ± {err}")
 
-data_20 = get_data("2.0_Ramp_7K_to_12K.csv", 60, 93, 9.5e-4, [3.762, 36, -8.7])
-data_21 = get_data("2.1_Ramp_12K_to_7K.csv", 133, 166, 9.5e-4, [3.76, 36, -8.65])
+def get_data(file, section, current, init_vals, fit_func):
+    file_data = read_csv(file)
+    # Extract the raw data lists from the data dictionary, and take a slice of the area of iterest
+    volt_data = file_data.get("Amplitude (V)").to_numpy()[section[0]:section[1]]
+    temp_data = file_data.get("Temperature (K)").to_numpy()[section[0]:section[1]]
+    # Convert the volateg value to a resistance
+    resi_data = volt_data/current
+    # Generate points for the fitted curve
+    temp_fit, resi_fit, fit, fit_cov = get_fit(fit_func, temp_data, resi_data, init_vals) 
+    # Pull out the temperature range from the file name
+    label = re.findall(r'(\d{1,2}K_to_\d{1,2}K)', file)
+    print_fit_perams(label, fit, fit_cov)
+    return ((temp_data, resi_data, f"Data: {label[0]}"), (temp_fit, resi_fit, f"Fit: {label[0]}"), fit)
 
+def get_fit(func, x, y, perams):
+    # Fit a sigmoid function to the raw data
+    fit, fit_cov = curve_fit(func, x, y, p0=perams)
+    # One data run if from low -> high temp and another is high -> low temp.
+    # therefore the range will be inverted for one of the runs
+    x1, x2 = x[0], x[-1]
+    larger  = lambda x1, x2: x1 if x1 > x2 else (x2 if x2 > x1 else 0)
+    smaller = lambda x1, x2: x1 if x1 < x2 else (x2 if x2 < x1 else 0)
+    x_fit = np.arange(smaller(x1, x2), larger(x1,x2), 0.01)
+    # generate the fitted curve data points
+    y_fit = sigmoid(x_fit, *fit)
+    return (x_fit, y_fit, fit, fit_cov)
+
+def get_t_annotations(func, offset, a, b, c):
+    result = []
+    a_vals = [x * a for x in [0.1, 0.5, 0.9]]
+    t_vals = func(a_vals, a, b, c).tolist()
+    t_off, a_off, i = offset
+    # just in case its not for some reason
+    if len(a_vals) != len(t_vals):
+        raise Exception(f"Length Issue:\na_vals = {a_vals}\nt_vals = {t_vals}")
+    for t, a in zip(t_vals, a_vals):
+        # Alternate between shifting the annotations left or right of the point
+        r_l = (-1) ** i
+        # Account for the length of the annotation
+        # the left shited labels need moved over more.
+        adjust = lambda r_l: 0.125 if r_l == 1 else 0
+        xy_text = [t - (adjust(r_l) + (t_off * r_l)), a - (adjust(r_l) + (a_off * r_l))]
+        label = f"({t:1.2f},{a:1.2f})"
+        result.append(((t, a), label, xy_text))
+    return result
+
+data_20 = get_data("2.0_Ramp_7K_to_12K.csv", (60, 93),   9.5e-4, [3.762, 36, -8.7], sigmoid)
+data_21 = get_data("2.1_Ramp_12K_to_7K.csv", (133, 166), 9.5e-4, [3.76, 36, -8.65], sigmoid)
 data_runs = (data_20, data_21)
 
 markers = ["o", "x", "D"]
 linestyles = ["dashed", "dashdot", "dotted"]
+
 fig, ax = plt.subplots()
-for i, data in enumerate(data_runs):
-    ax.plot(data[1][0], data[1][1], color=(0.5, 0.5, 0.5), linestyle=linestyles[i], label=data[1][2])
-    ax.scatter(data[0][0], data[0][1], color=(0, 0, 0), marker=markers[i], label=data[0][2])
-    t = get_T_vals(inv_sigmoid, *data[2])
-    print(f"{data[0][2]}:\t{t[2]}\nT_50:\t\t\t{t[0]}\nT_90 - T_10:\t\t{t[1]}\n")
-ax.hlines()
+for i, run in enumerate(data_runs):
+    ax.plot(run[1][0], run[1][1], color=(0.5, 0.5, 0.5), linestyle=linestyles[i], label=run[1][2])
+    ax.scatter(run[0][0], run[0][1], color=(0, 0, 0), marker=markers[i], label=run[0][2])
+    t = get_t_annotations(inv_sigmoid, (0.05, 0, i), *run[2]) # Get the annotations for the graph
+    for point in t:
+        ax.scatter(*point[0], color=(0.75, 0.75, 0.75), marker="D")
+        ax.annotate(point[1], xy=point[0], xycoords='data', xytext=point[2], arrowprops=dict(arrowstyle="->"))
 ax.set_title("Resistance vs Temperature { P=0.8, I=5.46, D=0 }")
 ax.set_xlabel("Temperature (K)")
 ax.set_ylabel("Resistance (Ω)")

@@ -1,8 +1,6 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import re
 from pandas import read_csv
-from scipy.optimize import curve_fit
 from math import log10, floor
 
 def round_sig(x, sig=1):
@@ -15,29 +13,36 @@ def get_data(file):
     temp_data = file_data.get("Temperature (K)").to_numpy()
     # Generate points for the fitted curve
     label = re.findall(r'(\d{1,2}K_to_\d{1,2}K)', file)[0]
-    return (temp_data, volt_data, f"Data: {label}")
+    return ((temp_data, volt_data), f"Data: {label}")
 
-data_371 = get_data("3.7.1_R&S_Metal_Insulator_5K_to_11K.csv")
-data_372 = get_data("3.7.2_R&S_Metal_Insulator_11K_to_30K.csv")
-data_375 = get_data("3.7.5_R&S_Metal_Insulator_30K_to_60K.csv")
-data_LH = (data_371, data_372, data_375)
-data_373 = get_data("3.7.3_R&S_Metal_Insulator_15K_to_5K.csv")
-data_374 = get_data("3.7.4_R&S_Metal_Insulator_30K_to_15K.csv")
-data_376 = get_data("3.7.6_R&S_Metal_Insulator_60K_to_30K.csv")
-data_HL = (data_373, data_374, data_376)
+
+def average(temp_data, volt_data, window_size=30):
+    volt_result = []
+    temp_result = []
+    for i in range(len(volt_data)-window_size-1):
+        volt_snippet = volt_data[i:i+window_size]
+        temp_snippet = temp_data[i:i+window_size]
+        volt_avg = sum(volt_snippet) / len(volt_snippet)
+        temp_avg = sum(temp_snippet) / len(temp_snippet)
+        volt_result.append(volt_avg)
+        temp_result.append(temp_avg)
+    return (temp_result, volt_result)
+
+data_35 = get_data("3.5_Susceptometer_10K_to_7K.csv")
+data_36 = get_data("3.6_Susceptometer_7K_to_9K.csv")
+data_35 = (average(*data_35[0]), data_35[1])
+data_runs = (data_35, data_36)
 
 markers = ["o", "x", "D"]
 linestyles = ["dashed", "dashdot", "dotted"]
 colours = [(0.25, 0.25, 0.25), (0.5, 0.5, 0.5), (0.75, 0.75, 0.75)]
 
 fig, ax = plt.subplots()
-for i, data in enumerate(data_LH):
-    ax.plot(data[0], data[1], color=colours[i], linestyle=linestyles[0], label=data[2])
-for i, data in enumerate(data_HL):
-    ax.plot(data[0], data[1], color=colours[i], linestyle=linestyles[2], label=data[2])
-ax.set_title("Resistance vs Temperature { P=0.8, I=5.46, D=0 }")
+for i, data in enumerate(data_runs):
+    ax.plot(*data[0], color=colours[i], label=data[1])
+ax.set_title("Voltage vs Temperature { P=0.52, I=5.4, D=0 }")
 ax.set_xlabel("Temperature (K)")
-ax.set_ylabel("Voltage (V)")
+ax.set_ylabel("Amplitude (V)")
 ax.legend(loc="lower right")
 fig.savefig("metal_insulator.png", dpi=300)
 

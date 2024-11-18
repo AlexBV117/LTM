@@ -1,8 +1,6 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import re
 from pandas import read_csv
-from scipy.optimize import curve_fit
 from math import log10, floor
 
 def round_sig(x, sig=1):
@@ -13,9 +11,10 @@ def get_data(file):
     # Extract the raw data lists from the data dictionary, and take a slice of the area of iterest
     volt_data = file_data.get("Amplitude (V)").to_numpy()
     temp_data = file_data.get("Temperature (K)").to_numpy()
+    resi_data = volt_data/1e-3
     # Generate points for the fitted curve
     label = re.findall(r'(\d{1,2}K_to_\d{1,2}K)', file)[0]
-    return (temp_data, volt_data, f"Data: {label}")
+    return (temp_data, resi_data, f"Data: {label}")
 
 data_371 = get_data("3.7.1_R&S_Metal_Insulator_5K_to_11K.csv")
 data_372 = get_data("3.7.2_R&S_Metal_Insulator_11K_to_30K.csv")
@@ -35,9 +34,9 @@ for i, data in enumerate(data_LH):
     ax.plot(data[0], data[1], color=colours[i], linestyle=linestyles[0], label=data[2])
 for i, data in enumerate(data_HL):
     ax.plot(data[0], data[1], color=colours[i], linestyle=linestyles[2], label=data[2])
-ax.set_title("Voltage vs Temperature for a Metal to Insulator Transition")
+ax.set_title("Resistance of a Metal to Insulator Transition as a Function of Temperature")
 ax.set_xlabel("Temperature (K)")
-ax.set_ylabel("Voltage (V)")
+ax.set_ylabel("Resistance (Ω)")
 ax.legend(loc="lower left")
 fig.savefig("metal_insulator.png", dpi=300)
 

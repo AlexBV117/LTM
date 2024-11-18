@@ -8,8 +8,8 @@ def get_data(file):
     time_data = file_data.get("Time (s)").to_numpy()
     return (time_data, temp_data), (time_data, ampl_data)
 
-temp_20, volt_20 = get_data("2.0_Ramp_7k_to_12K.csv")
-temp_21, volt_21 = get_data("2.1_Ramp_12k_to_7K.csv")
+temp_20, volt_20 = get_data("2.0_Ramp_7K_to_12K.csv")
+temp_21, volt_21 = get_data("2.1_Ramp_12K_to_7K.csv")
 temp_22, volt_22 = get_data("2.2_Ramp_8.9K_to_8.4K.csv")
 temp_23, volt_23 = get_data("2.3_Ramp_8.4K_to_8.9K.csv")
 temp_24, volt_24 = get_data("2.4_Ramp_8.4K_to_8.9K_5V.csv")
@@ -92,7 +92,7 @@ data_6 = (
     (volt_25, "Voltage vs Time { P=0.8, I=5.46, D=0 }", "Amplitude (V)")
 )
 fig6, axes6 = plt.subplots(2)
-fig6.suptitle("2.2_Ramp_8.9K_to_8.4K.csv")
+fig6.suptitle("2.5_Ramp_8.9K_to_8.4K_5V.csv")
 for i, axes in enumerate(axes6):
     axes.plot(*data_6[i][0], color='k')
     axes.set_title(data_6[i][1])
@@ -106,13 +106,13 @@ data_7 = (
     (volt_26, "Voltage vs Time { P=0.8, I=5.46, D=0 }", "Amplitude (V)")
 )
 fig7, axes7 = plt.subplots(2)
-fig7.suptitle("2.2_Ramp_8.9K_to_8.4K.csv")
+fig7.suptitle("2.6_Last_Chance.csv")
 for i, axes in enumerate(axes7):
     axes.plot(*data_7[i][0], color='k')
     axes.set_title(data_7[i][1])
     axes.set_xlabel("Time (s)")
     axes.set_ylabel(data_7[i][2])
 plt.tight_layout()
-fig7.savefig("Raw6.png", dpi=300)
+fig7.savefig("Raw7.png", dpi=300)
 
 plt.show()
